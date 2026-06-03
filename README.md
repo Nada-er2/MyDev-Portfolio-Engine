@@ -5,21 +5,25 @@
 MyDev Portfolio Engine est une application Full Stack permettant de gérer un portfolio de projets de développement web.
 
 Le visiteur peut :
-- consulter les projets,
-- filtrer les projets par technologie,
-- utiliser le mode Dark / Light.
+
+- Consulter les projets
+- Rechercher des projets
+- Filtrer les projets par technologie
+- Utiliser le mode Dark / Light
 
 L’administrateur peut :
-- se connecter de manière sécurisée,
-- ajouter des projets,
-- modifier des projets,
-- supprimer des projets.
+
+- Se connecter de manière sécurisée
+- Ajouter des projets
+- Modifier des projets
+- Supprimer des projets
+- Ajouter des images aux projets
 
 Le projet a été développé avec React, Node.js, Express, Prisma et PostgreSQL.
 
 ---
 
-# Prérequis
+## Prérequis
 
 Avant de lancer le projet, installer :
 
@@ -29,26 +33,22 @@ Avant de lancer le projet, installer :
 
 ---
 
-# Installation du projet
+## Installation du projet
 
-## 1. Cloner le repository
+### 1. Cloner le repository
 
 ```bash
 git clone https://github.com/Nada-er2/MyDev-Portfolio-Engine.git
 ```
 
----
-
-## 2. Installer les dépendances Frontend
+### 2. Installer les dépendances Frontend
 
 ```bash
 cd client
 npm install
 ```
 
----
-
-## 3. Installer les dépendances Backend
+### 3. Installer les dépendances Backend
 
 ```bash
 cd ../server
@@ -57,7 +57,7 @@ npm install
 
 ---
 
-# Configuration du fichier .env
+## Configuration du fichier .env
 
 Créer un fichier `.env` dans le dossier `server`.
 
@@ -71,7 +71,7 @@ PORT=5000
 
 ---
 
-# Configuration Prisma
+## Configuration Prisma
 
 Dans le dossier `server`, exécuter :
 
@@ -80,9 +80,15 @@ npx prisma generate
 npx prisma db push
 ```
 
+Créer l'administrateur :
+
+```bash
+node seed.js
+```
+
 ---
 
-# Lancer le Backend
+## Lancer le Backend
 
 Dans le dossier `server` :
 
@@ -92,13 +98,13 @@ npm start
 
 Le serveur démarre sur :
 
-```bash
+```text
 http://localhost:5000
 ```
 
 ---
 
-# Lancer le Frontend
+## Lancer le Frontend
 
 Dans le dossier `client` :
 
@@ -108,68 +114,148 @@ npm start
 
 L’application démarre sur :
 
-```bash
+```text
 http://localhost:3000
 ```
 
 ---
 
-# Identifiants Admin de test
+## Identifiants Admin de test
 
 Email :
 
-```bash
+```text
 admin@test.com
 ```
 
 Mot de passe :
 
-```bash
+```text
 123456
 ```
 
 ---
 
-# Fonctionnalités
+## Fonctionnalités
 
-- Authentification JWT
-- CRUD complet des projets
-- Filtre dynamique par technologie
-- Dashboard Admin
+### Authentification
+
+- Authentification sécurisée avec JWT
+- Protection des routes administrateur
+- Gestion de session via token
+
+### Gestion des projets
+
+- Ajout de projets
+- Modification de projets
+- Suppression de projets
+- Consultation de la liste des projets
+
+### Gestion des images
+
+- Upload d’images avec Multer
+- Prévisualisation avant upload
+- Validation des formats (JPG, JPEG, PNG, WEBP)
+- Limitation de la taille des fichiers
+- Suppression automatique des images lors de la suppression d’un projet
+
+### Recherche et Pagination
+
+- Recherche dynamique par titre ou description
+- Debounce pour optimiser les requêtes API
+- Pagination côté serveur
+- Navigation entre les pages
+
+### Interface Utilisateur
+
 - Responsive Design
-- Dark / Light Mode
-- Loader
+- Mode Dark / Light
+- Loader de chargement
 - Toast Notifications
+
+### Tests
+
+- Tests automatisés avec Jest
+- Tests API avec Supertest
+- Vérification des endpoints principaux
+- Vérification de l’authentification
 
 ---
 
-# Technologies utilisées
+## Technologies utilisées
 
-## Frontend
+### Frontend
+
 - React.js
 - React Router DOM
 - Axios
+- React Context API
+- React Toastify
 - CSS3
 
-## Backend
+### Backend
+
 - Node.js
 - Express.js
 - Prisma ORM
 - PostgreSQL
 - JWT
-- bcryptjs
+- bcrypt
+- Multer
+
+### Tests
+
+- Jest
+- Supertest
 
 ---
 
-# Structure du projet
+## Tests
+
+Dans le dossier `server` :
 
 ```bash
+npm test
+```
+
+Résultat attendu :
+
+```text
+PASS tests/project.test.js
+PASS tests/auth.test.js
+PASS tests/createProject.test.js
+
+Test Suites: 3 passed
+Tests: 3 passed
+```
+
+---
+
+## Améliorations Techniques Réalisées
+
+- Architecture Frontend / Backend séparée
+- Authentification JWT sécurisée
+- Upload d’images avec Multer
+- Validation des fichiers uploadés
+- Suppression automatique des images inutilisées
+- Recherche optimisée avec Debounce
+- Pagination serveur avec Prisma
+- Gestion globale du thème avec Context API
+- Responsive Design sur mobile, tablette et desktop
+- Tests automatisés de l’API avec Jest et Supertest
+
+---
+
+## Structure du projet
+
+```text
 project/
 │
 ├── client/
 │   ├── src/
 │   │   ├── components/
 │   │   ├── context/
+│   │   ├── hooks/
 │   │   ├── pages/
 │   │   ├── api.js
 │   │   ├── App.js
@@ -178,14 +264,23 @@ project/
 ├── server/
 │   ├── controllers/
 │   ├── middleware/
-│   ├── prisma/
 │   ├── routes/
 │   ├── config/
-│   └── index.js
+│   ├── tests/
+│   ├── uploads/
+│   ├── app.js
+│   ├── index.js
+│   └── seed.js
+│
+└── README.md
 ```
 
 ---
 
-# Auteur
+## Auteur
 
-Projet réalisé par Nada Errissouni.
+**Nada Errissouni**
+
+Développement Digital – Option Full Stack
+
+Projet réalisé dans le cadre d’un stage et de la création d’un portfolio professionnel Full Stack.
