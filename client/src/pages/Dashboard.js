@@ -3,34 +3,46 @@ import API from "../api";
 import Loader from "../components/Loader";
 import ThemeToggle from "../components/ThemeToggle";
 import { toast } from "react-toastify";
-
+import useDebounce from "../hooks/useDebounce";
 function Dashboard() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [showForm, setShowForm] = useState(false);
 
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+
   const [deleteId, setDeleteId] = useState(null);
 
   const [animatedCount, setAnimatedCount] = useState(0);
-
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [form, setForm] = useState({
     title: "",
     description: "",
-    imageUrl: "",
+    image: null,
     technologies: "",
     githubUrl: "",
   });
 
   const [editId, setEditId] = useState(null);
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
 
   useEffect(() => {
-    API.get("/projects")
-      .then((res) => {
-        setProjects(res.data);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  setLoading(true);
+
+  API.get(
+    `/projects?search=${debouncedSearch}&page=${page}&limit=5`
+  )
+    .then((res) => {
+      setProjects(res.data.data);
+      setTotalPages(res.data.totalPages);
+    })
+    .finally(() => setLoading(false));
+}, [debouncedSearch, page]);
 
   useEffect(() => {
     let start = 0;
@@ -54,7 +66,7 @@ function Dashboard() {
     if (
       !form.title ||
       !form.description ||
-      !form.imageUrl ||
+      !form.image ||
       !form.technologies ||
       !form.githubUrl
     ) {
@@ -62,26 +74,30 @@ function Dashboard() {
       return;
     }
 
-    const data = {
-      ...form,
-      technologies: form.technologies
-        .split(",")
-        .map((t) => t.trim()),
-    };
+    const formData = new FormData();
+
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+
+    formData.append(
+      "technologies",
+      JSON.stringify(form.technologies.split(",").map((t) => t.trim())),
+    );
+
+    formData.append("githubUrl", form.githubUrl);
+
+    if (form.image) {
+      formData.append("image", form.image);
+    }
 
     try {
       if (editId) {
-        const res = await API.put(`/projects/${editId}`, data);
-
-        setProjects(
-          projects.map((p) =>
-            p.id === editId ? res.data : p
-          )
-        );
+        const res = await API.put(`/projects/${editId}`, formData);
+        setProjects(projects.map((p) => (p.id === editId ? res.data : p)));
 
         toast.success("Project updated");
       } else {
-        const res = await API.post("/projects", data);
+        const res = await API.post("/projects", formData);
 
         setProjects([...projects, res.data]);
 
@@ -91,7 +107,7 @@ function Dashboard() {
       setForm({
         title: "",
         description: "",
-        imageUrl: "",
+        image: null,
         technologies: "",
         githubUrl: "",
       });
@@ -125,22 +141,15 @@ function Dashboard() {
     <div className="dashboard-page">
       <div className="dashboard-top">
         <div>
-            <h1 className="dashboard-title">
-              Dashboard
-            </h1>
+          <h1 className="dashboard-title">Dashboard</h1>
 
-            <h3 className="project-counter">
-              {animatedCount} Projects
-            </h3>
-          </div>
+          <h3 className="project-counter">{animatedCount} Projects</h3>
+        </div>
 
         <div className="dashboard-actions">
           <ThemeToggle />
 
-          <button
-            className="custom-btn"
-            onClick={logout}
-          >
+          <button className="custom-btn" onClick={logout}>
             Home
           </button>
 
@@ -154,7 +163,7 @@ function Dashboard() {
               setForm({
                 title: "",
                 description: "",
-                imageUrl: "",
+                image: null,
                 technologies: "",
                 githubUrl: "",
               });
@@ -193,15 +202,22 @@ function Dashboard() {
 
           <input
             className="custom-input"
-            placeholder="Image URL"
-            value={form.imageUrl}
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp"
             onChange={(e) =>
               setForm({
                 ...form,
-                imageUrl: e.target.value,
+                image: e.target.files[0],
               })
             }
           />
+          {form.image && (
+            <img
+              src={URL.createObjectURL(form.image)}
+              alt="Preview"
+              className="table-img"
+            />
+          )}
 
           <input
             className="custom-input"
@@ -228,10 +244,7 @@ function Dashboard() {
           />
 
           <div className="form-buttons">
-            <button
-              className="add-btn"
-              onClick={handleSubmit}
-            >
+            <button className="add-btn" onClick={handleSubmit}>
               Confirm
             </button>
 
@@ -248,7 +261,14 @@ function Dashboard() {
           </div>
         </div>
       )}
-
+      <div style={{ marginBottom: "20px" }}>
+        <input
+          className="custom-input"
+          placeholder="Search project..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
       <div className="table-container">
         <table className="custom-table">
           <thead>
@@ -267,7 +287,11 @@ function Dashboard() {
               <tr key={p.id}>
                 <td data-label="Image">
                   <img
-                    src={p.imageUrl}
+                    src={
+                      p.imagePath
+                        ? `http://localhost:5000${p.imagePath}`
+                        : "/placeholder.png"
+                    }
                     alt=""
                     className="table-img"
                   />
@@ -281,34 +305,23 @@ function Dashboard() {
                   {p.description}
                 </td>
 
-                <td data-label="Technologies">
-                  {p.technologies.join(", ")}
-                </td>
+                <td data-label="Technologies">{p.technologies.join(", ")}</td>
 
                 <td data-label="GitHub">
-                  <a
-                    href={p.githubUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
+                  <a href={p.githubUrl} target="_blank" rel="noreferrer">
                     Link
                   </a>
                 </td>
 
                 <td data-label="Actions">
                   <div className="action-buttons">
-                    <button
-                      className="edit-btn"
-                      onClick={() => editProject(p)}
-                    >
+                    <button className="edit-btn" onClick={() => editProject(p)}>
                       Edit
                     </button>
 
                     <button
                       className="delete-btn"
-                      onClick={() =>
-                        setDeleteId(p.id)
-                      }
+                      onClick={() => setDeleteId(p.id)}
                     >
                       Delete
                     </button>
@@ -318,6 +331,27 @@ function Dashboard() {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="pagination">
+        <button
+          className="custom-btn"
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+        >
+          Previous
+        </button>
+
+        <span>
+          Page {page} / {totalPages}
+        </span>
+
+        <button
+          className="custom-btn"
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+        >
+          Next
+        </button>
       </div>
 
       {deleteId && (
@@ -329,15 +363,9 @@ function Dashboard() {
               <button
                 className="delete-btn"
                 onClick={async () => {
-                  await API.delete(
-                    `/projects/${deleteId}`
-                  );
+                  await API.delete(`/projects/${deleteId}`);
 
-                  setProjects(
-                    projects.filter(
-                      (p) => p.id !== deleteId
-                    )
-                  );
+                  setProjects(projects.filter((p) => p.id !== deleteId));
 
                   toast.success("Project deleted");
 
@@ -347,12 +375,7 @@ function Dashboard() {
                 Confirm
               </button>
 
-              <button
-                className="custom-btn"
-                onClick={() =>
-                  setDeleteId(null)
-                }
-              >
+              <button className="custom-btn" onClick={() => setDeleteId(null)}>
                 Cancel
               </button>
             </div>

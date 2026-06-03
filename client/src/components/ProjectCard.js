@@ -11,9 +11,9 @@ function ProjectCard({ project }) {
 
   return (
     <div className="project-card">
-
       <img
-        src={project.imageUrl}
+        
+        src={`http://localhost:5000${project.imagePath}`}
         alt={project.title}
         className="project-image"
       />

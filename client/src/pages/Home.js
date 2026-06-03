@@ -18,7 +18,7 @@ function Home() {
 
     API.get("/projects")
       .then((res) => {
-        setProjects(res.data);
+        setProjects(res.data.data);
 
         setTimeout(() => {
           setLoading(false);
