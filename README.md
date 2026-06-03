@@ -93,7 +93,7 @@ node seed.js
 Dans le dossier `server` :
 
 ```bash
-npm start
+node index.js 
 ```
 
 Le serveur démarre sur :
