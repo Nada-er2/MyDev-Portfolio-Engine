@@ -51,7 +51,7 @@ npm install
 ### 3. Installer les dépendances Backend
 
 ```bash
-cd ../server
+cd server
 npm install
 ```
 
